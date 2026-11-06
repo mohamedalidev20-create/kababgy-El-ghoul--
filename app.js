@@ -11,13 +11,28 @@ function renderCategories(){
  $("#categories").querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{activeCategory=b.dataset.cat;renderCategories();renderMenu()});
 }
 function foodPhotoUrl(item,index){
- const tags={"الوجبات":"egyptian,grilled,meat,rice","المشويات":"kebab,kofta,grilled,bbq","السمين":"egyptian,meat,stew","الأطباق الرئيسية":"roasted,meat,dinner","الطواجن":"tagine,stew,claypot","السندوتشات":"shawarma,meat,sandwich","المقبلات":"mezze,salad,appetizer","الأرز والمكرونات":"rice,pasta,food","الكريبات":"savory,crepe,wrap","البروستد":"crispy,fried,chicken"};
- return `https://loremflickr.com/720/480/${tags[item.category]||"egyptian,food"}?lock=${index+101}`;
+ // صور ثابتة من Unsplash بدل خدمة الصور العشوائية التي كانت تفشل أحياناً.
+ const photos={
+  "الوجبات":["photo-1544025162-d76694265947","photo-1558030006-450675393462","photo-1547592180-85f173990554"],
+  "المشويات":["photo-1558030006-450675393462","photo-1544025162-d76694265947","photo-1529692236671-f1f6cf9683ba"],
+  "السمين":["photo-1547592180-85f173990554","photo-1547592166-23ac45744acd"],
+  "الأطباق الرئيسية":["photo-1547592180-85f173990554","photo-1547592166-23ac45744acd","photo-1515003197210-e0cd7184f8b5"],
+  "الطواجن":["photo-1547592180-85f173990554","photo-1547592166-23ac45744acd"],
+  "السندوتشات":["photo-1553909489-cd47e0ef937f","photo-1568901346375-23c9450c58cd","photo-1528735602780-2552fd46c7af"],
+  "المقبلات":["photo-1512621776951-a57141f2eefd","photo-1547592180-85f173990554"],
+  "الأرز والمكرونات":["photo- pasta","photo-1473093295043-cdd812d0e601","photo-1551183053-bf91a1d81141"],
+  "الكريبات":["photo-1513104890138-7c749659a591","photo-1565299624946-b28f40a0ae38"],
+  "البروستد":["photo-1626082927389-6cd097cdc6ec","photo-1562967914-608f82629710","photo-1569691899455-5dc7a9e6a9b7"]
+ };
+ const list=photos[item.category]||photos["الوجبات"];
+ let id=list[index%list.length];
+ if(id==="photo- pasta") id="photo-1473093295043-cdd812d0e601";
+ return `https://images.unsplash.com/${id}?auto=format&fit=crop&w=720&q=80`;
 }
 function renderMenu(){
  const term=$("#searchInput").value.trim().toLowerCase();
  const list=menu.map((item,index)=>({...item,index})).filter(x=>(activeCategory==="الكل"||x.category===activeCategory)&&(`${x.name} ${x.desc} ${x.category}`).toLowerCase().includes(term));
- $("#menuGrid").innerHTML=list.length?list.map(x=>`<article class="food-card"><div class="food-photo-wrap"><img class="food-photo" src="${foodPhotoUrl(x,x.index)}" alt="صورة ${escapeHtml(x.name)}" loading="lazy" onerror="this.closest('.food-photo-wrap').classList.add('photo-unavailable');this.remove()"></div><div class="food-info"><span class="food-category">${escapeHtml(x.category)}</span><h3>${escapeHtml(x.name)}</h3>${x.desc?`<p>${escapeHtml(x.desc)}</p>`:""}<div class="option-list">${x.options.map((o,j)=>`<div class="option-row"><span>${escapeHtml(o.label)}</span><b class="price">${money(o.price)}</b><button class="add-btn" data-add="${x.index}" data-option="${j}">+ أضف</button></div>`).join("")}</div></div></article>`).join(""):`<div class="empty">مفيش أصناف مطابقة للبحث.</div>`;
+ $("#menuGrid").innerHTML=list.length?list.map(x=>`<article class="food-card"><div class="food-photo-wrap"><img class="food-photo" src="${foodPhotoUrl(x,x.index)}" alt="صورة ${escapeHtml(x.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=720&q=80'"></div><div class="food-info"><span class="food-category">${escapeHtml(x.category)}</span><h3>${escapeHtml(x.name)}</h3>${x.desc?`<p>${escapeHtml(x.desc)}</p>`:""}<div class="option-list">${x.options.map((o,j)=>`<div class="option-row"><span>${escapeHtml(o.label)}</span><b class="price">${money(o.price)}</b><button class="add-btn" data-add="${x.index}" data-option="${j}">+ أضف</button></div>`).join("")}</div></div></article>`).join(""):`<div class="empty">مفيش أصناف مطابقة للبحث.</div>`;
  $("#menuGrid").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addToCart(Number(b.dataset.add),Number(b.dataset.option)));
 }
 function saveCart(){localStorage.setItem("ghoulCartFinal",JSON.stringify(cart));renderCart()}
